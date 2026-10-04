@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shiva & Nadhi + Spider-Man Animation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 3px solid white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 100%);
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        h1 {
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <h1>🙏 Shiva & Nadhi - Divine Snow Scene 🙏</h1>
+    <canvas id="canvas" width="1000" height="600"></canvas>
+    <div class="controls">
+        <button onclick="toggleAnimation()">Play/Pause</button>
+        <button onclick="resetAnimation()">Reset</button>
+        <button onclick="downloadVideo()">Download (GIF)</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let animationRunning = true;
+        let frameCount = 0;
+        const fps = 60;
+        const duration = 30 * fps; // 30 seconds at 60fps
+
+        // Snowflakes
+        const snowflakes = [];
+        for (let i = 0; i < 100; i++) {
+            snowflakes.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 3 + 1,
+                speedY: Math.random() * 2 + 1,
+                speedX: Math.random() * 1 - 0.5,
+                opacity: Math.random() * 0.5 + 0.3
+            });
+        }
+
+        function drawMountain() {
+            ctx.fillStyle = '#F0F8FF';
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height);
+            ctx.quadraticCurveTo(canvas.width / 4, canvas.height / 2, canvas.width / 2, canvas.height / 3);
+            ctx.quadraticCurveTo(3 * canvas.width / 4, canvas.height / 2, canvas.width, canvas.height);
+            ctx.fill();
+            ctx.strokeStyle = '#E0E0E0';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function drawShiva(x, y, scale = 1) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
+
+            // Body (Sitting position)
+            ctx.fillStyle = '#FFD7B5';
+            ctx.beginPath();
+            ctx.arc(0, 0, 30, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Head
+            ctx.fillStyle = '#FFD7B5';
+            ctx.beginPath();
+            ctx.arc(0, -50, 28, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Hair/Jata (matted locks) - Blue tint
+            ctx.fillStyle = '#4A4A7A';
+            ctx.beginPath();
+            ctx.arc(-15, -65, 20, Math.PI / 4, Math.PI * 1.75);
+            ctx.arc(15, -65, 20, Math.PI * 0.25, Math.PI * 1.25);
+            ctx.fill();
+
+            // Third eye (Urdhva Netra)
+            ctx.fillStyle = '#FF4444';
+            ctx.beginPath();
+            ctx.arc(0, -52, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-10, -55, 3, 0, Math.PI * 2);
+            ctx.arc(10, -55, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Crescent moon on forehead
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, -48, 12, 0, Math.PI, true);
+            ctx.stroke();
+
+            // Arms
+            ctx.strokeStyle = '#FFD7B5';
+            ctx.lineWidth = 15;
+            ctx.beginPath();
+            ctx.moveTo(-30, -10);
+            ctx.quadraticCurveTo(-60, 20, -50, 60);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(30, -10);
+            ctx.quadraticCurveTo(60, 20, 50, 60);
+            ctx.stroke();
+
+            // Legs (Sitting)
+            ctx.beginPath();
+            ctx.moveTo(-20, 30);
+            ctx.lineTo(-30, 80);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(20, 30);
+            ctx.lineTo(30, 80);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function drawNadhi(x, y, progress) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Circular head with ornaments
+            ctx.fillStyle = '#FFD7B5';
+            ctx.beginPath();
+            ctx.arc(0, 0, 25, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Bindi
+            ctx.fillStyle = '#FF6B6B';
+            ctx.beginPath();
+            ctx.arc(0, -8, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eyes
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-8, -5, 3, 0, Math.PI * 2);
+            ctx.arc(8, -5, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Hair
+            ctx.fillStyle = '#8B4513';
+            ctx.beginPath();
+            ctx.arc(0, -18, 22, Math.PI, Math.PI * 2);
+            ctx.fill();
+
+            // Body (walking position)
+            ctx.strokeStyle = '#FFD7B5';
+            ctx.lineWidth = 14;
+            ctx.beginPath();
+            ctx.moveTo(0, 25);
+            ctx.lineTo(0, 55);
+            ctx.stroke();
+
+            // Walking animation - swinging arms and legs
+            const walkPhase = Math.sin(progress * Math.PI * 2) * 0.5;
+            
+            // Left arm
+            ctx.beginPath();
+            ctx.moveTo(-12, 35);
+            ctx.quadraticCurveTo(-40 + walkPhase * 15, 50, -35, 70);
+            ctx.stroke();
+
+            // Right arm
+            ctx.beginPath();
+            ctx.moveTo(12, 35);
+            ctx.quadraticCurveTo(40 - walkPhase * 15, 50, 35, 70);
+            ctx.stroke();
+
+            // Left leg
+            ctx.beginPath();
+            ctx.moveTo(-8, 55);
+            ctx.lineTo(-8 + walkPhase * 20, 95);
+            ctx.stroke();
+
+            // Right leg
+            ctx.beginPath();
+            ctx.moveTo(8, 55);
+            ctx.lineTo(8 - walkPhase * 20, 95);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function updateSnowflakes() {
+            snowflakes.forEach(flake => {
+                flake.y += flake.speedY;
+                flake.x += flake.speedX;
+
+                // Wrap around edges
+                if (flake.y > canvas.height) {
+                    flake.y = -10;
+                    flake.x = Math.random() * canvas.width;
+                }
+                if (flake.x < 0) flake.x = canvas.width;
+                if (flake.x > canvas.width) flake.x = 0;
+            });
+        }
+
+        function drawSnowflakes() {
+            ctx.fillStyle = '#FFF';
+            snowflakes.forEach(flake => {
+                ctx.globalAlpha = flake.opacity;
+                ctx.beginPath();
+                ctx.arc(flake.x, flake.y, flake.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        function drawSnowOnGround() {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+
+            // Snow drifts
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.beginPath();
+            ctx.arc(150, canvas.height - 20, 80, 0, Math.PI);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(canvas.width - 150, canvas.height - 15, 100, 0, Math.PI);
+            ctx.fill();
+        }
+
+        function animate() {
+            if (!animationRunning) return;
+
+            // Clear canvas with gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#E0F6FF');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw scene
+            drawMountain();
+            updateSnowflakes();
+            drawSnowflakes();
+
+            // Draw Shiva sitting (left side)
+            drawShiva(200, 380, 1);
+
+            // Draw Nadhi walking (moving across the scene)
+            const nadhiProgress = (frameCount % duration) / duration;
+            const nadhiX = 100 + nadhiProgress * 700;
+            const nadhiWalkPhase = (frameCount % duration) / (duration / 4);
+            drawNadhi(nadhiX, 350, nadhiWalkPhase);
+
+            // Ground snow
+            drawSnowOnGround();
+
+            // Text
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 24px Arial';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            ctx.shadowBlur = 5;
+            ctx.fillText('🙏 Shiva in Meditation 🙏', 20, 40);
+            ctx.font = '16px Arial';
+            ctx.fillText('Nadhi walks through the snow', 20, 65);
+
+            frameCount++;
+            if (frameCount > duration) frameCount = 0;
+
+            requestAnimationFrame(animate);
+        }
+
+        function toggleAnimation() {
+            animationRunning = !animationRunning;
+            if (animationRunning) animate();
+        }
+
+        function resetAnimation() {
+            frameCount = 0;
+            animationRunning = true;
+            animate();
+        }
+
+        function downloadVideo() {
+            alert('To download as video:\n\n1. Use screen recording (Windows+G)\n2. Or use online tools like ezgif.com\n3. Convert frame captures to MP4\n\nFor now, refresh to see the animation loop!');
+        }
+
+        // Start animation
+        animate();
+    </script>
+</body>
+</html>
