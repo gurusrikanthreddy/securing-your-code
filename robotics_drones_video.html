@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robotics & Drones - Animation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Arial', sans-serif;
+        }
+        canvas {
+            border: 3px solid #00ff00;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+            background: linear-gradient(to bottom, #0a1428 0%, #1a2a4e 100%);
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background: #00ff00;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+        }
+        h1 {
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #00ff00;
+            opacity: 0.7;
+            margin-top: -10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 ROBOTICS & DRONES 🚁</h1>
+    <p class="subtitle">Advanced Technology Animation</p>
+    <canvas id="canvas" width="1200" height="700"></canvas>
+    <div class="controls">
+        <button onclick="toggleAnimation()">▶ Play/Pause</button>
+        <button onclick="resetAnimation()">↻ Reset</button>
+        <button onclick="changeScene()">📺 Next Scene</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let animationRunning = true;
+        let frameCount = 0;
+        let currentScene = 0;
+        const fps = 60;
+        const totalFrames = 360; // 6 seconds per scene
+
+        // Draw grid background
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(0, 255, 0, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < canvas.width; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, canvas.height);
+                ctx.stroke();
+            }
+            for (let i = 0; i < canvas.height; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(canvas.width, i);
+                ctx.stroke();
+            }
+        }
+
+        // Draw drone (Quadcopter)
+        function drawDrone(x, y, angle, scale = 1) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.scale(scale, scale);
+
+            // Drone body (center cube)
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(-15, -15, 30, 30);
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-15, -15, 30, 30);
+
+            // Propeller arms
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(-15, 0);
+            ctx.lineTo(-70, 0);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(15, 0);
+            ctx.lineTo(70, 0);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(0, -15);
+            ctx.lineTo(0, -70);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(0, 15);
+            ctx.lineTo(0, 70);
+            ctx.stroke();
+
+            // Propellers (rotating)
+            const propellerRotation = frameCount * 0.3;
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.globalAlpha = 0.6;
+
+            // Propeller 1 (top-left)
+            drawPropeller(ctx, -70, 0, propellerRotation);
+            // Propeller 2 (top-right)
+            drawPropeller(ctx, 70, 0, propellerRotation);
+            // Propeller 3 (bottom-left)
+            drawPropeller(ctx, 0, -70, propellerRotation);
+            // Propeller 4 (bottom-right)
+            drawPropeller(ctx, 0, 70, propellerRotation);
+
+            ctx.globalAlpha = 1;
+            ctx.restore();
+        }
+
+        function drawPropeller(ctx, x, y, angle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            
+            ctx.beginPath();
+            ctx.moveTo(-25, -3);
+            ctx.lineTo(25, -3);
+            ctx.lineTo(25, 3);
+            ctx.lineTo(-25, 3);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        // Draw robot arm
+        function drawRobot(x, y, armAngle) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Base
+            ctx.fillStyle = '#0066cc';
+            ctx.fillRect(-40, 0, 80, 80);
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-40, 0, 80, 80);
+
+            // Arm base (rotating)
+            ctx.fillStyle = '#0066cc';
+            ctx.beginPath();
+            ctx.arc(0, 0, 20, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Arm segment 1
+            ctx.save();
+            ctx.rotate(armAngle);
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(60, 0);
+            ctx.stroke();
+
+            // Arm segment 2
+            ctx.translate(60, 0);
+            ctx.rotate(-armAngle * 0.5);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(50, 0);
+            ctx.stroke();
+
+            // Gripper
+            ctx.translate(50, 0);
+            ctx.fillStyle = '#ff6600';
+            ctx.fillRect(-8, -15, 16, 30);
+            ctx.stroke();
+
+            ctx.restore();
+            ctx.restore();
+        }
+
+        // Draw satellites
+        function drawSatellite(x, y, rotationAngle) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(rotationAngle);
+
+            // Body
+            ctx.fillStyle = '#ffcc00';
+            ctx.fillRect(-20, -20, 40, 40);
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-20, -20, 40, 40);
+
+            // Solar panels
+            ctx.fillStyle = 'rgba(0, 150, 255, 0.7)';
+            ctx.fillRect(-60, -10, 40, 20);
+            ctx.strokeRect(-60, -10, 40, 20);
+            
+            ctx.fillRect(20, -10, 40, 20);
+            ctx.strokeRect(20, -10, 40, 20);
+
+            // Antenna
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, -20);
+            ctx.lineTo(0, -60);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // Draw autonomous car
+        function drawAutonomousCar(x, y, moveX) {
+            ctx.save();
+            ctx.translate(x + moveX, y);
+
+            // Car body
+            ctx.fillStyle = '#ff0099';
+            ctx.fillRect(-60, -20, 120, 40);
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-60, -20, 120, 40);
+
+            // Windows
+            ctx.fillStyle = 'rgba(100, 150, 255, 0.5)';
+            ctx.fillRect(-50, -15, 30, 12);
+            ctx.fillRect(20, -15, 30, 12);
+
+            // Wheels
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(-40, 25, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(40, 25, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Sensor/LiDAR on top
+            ctx.fillStyle = '#00ff00';
+            ctx.beginPath();
+            ctx.arc(0, -30, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawScene(sceneNum) {
+            // Clear canvas with gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#0a1428');
+            gradient.addColorStop(1, '#1a2a4e');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drawGrid();
+
+            // Title area
+            ctx.fillStyle = '#00ff00';
+            ctx.font = 'bold 28px Arial';
+            ctx.shadowColor = 'rgba(0, 255, 0, 0.5)';
+            ctx.shadowBlur = 10;
+
+            switch(sceneNum % 4) {
+                case 0: // Drone scene
+                    ctx.fillText('🚁 DRONE TECHNOLOGY 🚁', 50, 50);
+                    
+                    // Multiple drones flying in formation
+                    const droneY = 250 + Math.sin(frameCount * 0.02) * 50;
+                    drawDrone(300, droneY, frameCount * 0.05);
+                    drawDrone(600, droneY + 30, frameCount * 0.05);
+                    drawDrone(900, droneY - 30, frameCount * 0.05);
+
+                    ctx.font = '14px Arial';
+                    ctx.fillText('Autonomous Flight • Real-time Sensors • AI Navigation', 50, canvas.height - 30);
+                    break;
+
+                case 1: // Robot arm scene
+                    ctx.fillText('🤖 INDUSTRIAL ROBOTS 🤖', 50, 50);
+                    
+                    const armAngle = Math.sin(frameCount * 0.02) * 0.8;
+                    drawRobot(300, 200, armAngle);
+                    drawRobot(700, 200, armAngle + Math.PI / 2);
+
+                    ctx.font = '14px Arial';
+                    ctx.fillText('Precision Manufacturing • Automation • 6-DOF Arms', 50, canvas.height - 30);
+                    break;
+
+                case 2: // Satellite scene
+                    ctx.fillText('🛰️ SPACE ROBOTICS 🛰️', 50, 50);
+                    
+                    const satelliteRotation = frameCount * 0.01;
+                    drawSatellite(300, 250, satelliteRotation);
+                    drawSatellite(900, 250, -satelliteRotation);
+
+                    // Orbiting animation
+                    const angle1 = frameCount * 0.01;
+                    const orbitX = Math.cos(angle1) * 200;
+                    const orbitY = Math.sin(angle1) * 100;
+                    drawSatellite(600 + orbitX, 250 + orbitY, angle1);
+
+                    ctx.font = '14px Arial';
+                    ctx.fillText('Earth Observation • Communication • Space Exploration', 50, canvas.height - 30);
+                    break;
+
+                case 3: // Autonomous vehicle scene
+                    ctx.fillText('🚗 AUTONOMOUS VEHICLES 🚗', 50, 50);
+                    
+                    const carMove = (frameCount % 300) - 150;
+                    drawAutonomousCar(300, 300, carMove);
+                    drawAutonomousCar(700, 350, -carMove);
+
+                    ctx.font = '14px Arial';
+                    ctx.fillText('Self-Driving • Computer Vision • Deep Learning', 50, canvas.height - 30);
+                    break;
+            }
+
+            // Frame counter
+            ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
+            ctx.font = '12px Arial';
+            ctx.fillText(`Scene ${(currentScene % 4) + 1}/4 | Frame: ${frameCount}`, canvas.width - 300, 30);
+        }
+
+        function animate() {
+            if (animationRunning) {
+                drawScene(currentScene);
+                frameCount++;
+                if (frameCount > totalFrames) {
+                    frameCount = 0;
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        function toggleAnimation() {
+            animationRunning = !animationRunning;
+        }
+
+        function resetAnimation() {
+            frameCount = 0;
+            animationRunning = true;
+        }
+
+        function changeScene() {
+            currentScene++;
+            frameCount = 0;
+            animationRunning = true;
+        }
+
+        // Start animation
+        animate();
+    </script>
+</body>
+</html>
